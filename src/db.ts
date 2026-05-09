@@ -4,7 +4,10 @@ dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: false,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 export const query = (text: string, params?: unknown[]) => pool.query(text, params);
@@ -20,7 +23,8 @@ export const initDB = async () => {
       courses TEXT[] NOT NULL,
       placement_percentage INTEGER,
       overview TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP DEFAULT NOW(),
+      CONSTRAINT colleges_name_unique UNIQUE (name)
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -38,6 +42,15 @@ export const initDB = async () => {
       UNIQUE(user_id, college_id)
     );
   `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_colleges_location ON colleges(location);
+    CREATE INDEX IF NOT EXISTS idx_colleges_rating ON colleges(rating DESC);
+    CREATE INDEX IF NOT EXISTS idx_colleges_fees ON colleges(fees);
+    CREATE INDEX IF NOT EXISTS idx_colleges_placement ON colleges(placement_percentage DESC);
+    CREATE INDEX IF NOT EXISTS idx_colleges_name ON colleges(name);
+  `);
+
   console.log('Database initialized');
 };
 

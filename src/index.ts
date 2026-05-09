@@ -5,6 +5,7 @@ import { initDB } from './db';
 import collegeRoutes from './routes/colleges';
 import authRoutes from './routes/auth';
 import savedRoutes from './routes/saved';
+import predictorRoutes from './routes/predictor';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/saved', savedRoutes);
+app.use('/api/predictor', predictorRoutes);
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
